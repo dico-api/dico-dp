@@ -15,6 +15,10 @@ def interaction_check(message_id, prefix):
 class DPAddon(dico_command.Addon, name="dp"):
     command_name = "dp"
 
+    async def addon_check(self, ctx):
+        owner_ids = await self.bot.get_owners()
+        return ctx.author.id in owner_ids
+
     @dico_command.command(command_name)
     async def dp(self, ctx: dico_command.Context):
         info = DP_INFO_SELECT.copy()
