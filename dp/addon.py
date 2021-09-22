@@ -58,7 +58,7 @@ class DPAddon(dico_command.Addon, name="dp"):
         delete_button = dico.Button(style=dico.ButtonStyles.DANGER, emoji="🗑️", custom_id="trash")
         try:
             resp = await ev.evaluate()
-            str_resp = [f"Result {i}:\n{x}" for i, x in enumerate(resp, start=1)] if len(resp) > 1 else resp
+            str_resp = [f"Result {i}:\n{x}" for i, x in enumerate(resp, start=1)] if len(resp) > 1 else [*map(str, resp)]
             pages = []
             for x in str_resp:
                 if len(x) > 2000:

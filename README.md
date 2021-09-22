@@ -1,6 +1,11 @@
 # dp
 Simple debugger and tester for dico-command.
 
+## Installation
+```
+pip install -U dico-dp
+```
+
 ## Usage
 
 ```py
