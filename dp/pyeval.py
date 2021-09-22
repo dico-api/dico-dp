@@ -16,7 +16,7 @@ class PYEval:
         if code.startswith("```py") and code.endswith("```"):
             code = code.lstrip("```py\n")
             code = code.rstrip('```')
-        if len(code.split('\n')) == 1 and not code.startswith("return"):
+        if len(code.split('\n')) == 1 and not code.startswith("return") and not code.startswith("del") and not code.startswith("raise"):
             code = f"return {code}"
         code = '\n'.join([f'    {x}' for x in code.split('\n')])
         code = f"async def evaluate_this(bot, ctx):\n{code}"

@@ -1,9 +1,13 @@
 import asyncio
+import traceback
 
 import dico
 import dico_command
 from .components import DP_INFO_SELECT, DPE_INFO_SELECT
 from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info
+from .pager import Pager
+from .pyeval import PYEval
+from .utils import delete_wait
 
 
 def interaction_check(message_id, prefix):
@@ -48,9 +52,40 @@ class DPAddon(dico_command.Addon, name="dp"):
     async def dp_sys(self, ctx: dico_command.Context):
         await ctx.reply(get_sys_info())
 
+    @dp.subcommand("py")
+    async def dp_py(self, ctx: dico_command.Context, *, src: str):
+        ev = PYEval(ctx, self.bot, src)
+        delete_button = dico.Button(style=dico.ButtonStyles.DANGER, emoji="🗑️", custom_id="trash")
+        try:
+            resp = await ev.evaluate()
+            str_resp = [f"Result {i}:\n{x}" for i, x in enumerate(resp, start=1)] if len(resp) > 1 else resp
+            pages = []
+            for x in str_resp:
+                if len(x) > 2000:
+                    while len(x) > 2000:
+                        pages.append(x[:2000])
+                        x = x[2000:]
+                    pages.append(x)
+                else:
+                    pages.append(x)
+            if len(pages) == 1:
+                return await delete_wait(self.bot, ctx, content=str(pages[0]))
+            pager = Pager(self.bot, ctx.channel, ctx.author, pages, reply=ctx, extra_button=delete_button, timeout=60)
+            async for _ in pager.start():
+                await pager.message.delete()
+                break
+        except Exception as ex:
+            tb = ''.join(traceback.format_exception(type(ex), ex, ex.__traceback__))
+            tb = ("..." + tb[-1997:]) if len(tb) > 2000 else tb
+            await delete_wait(self.bot, ctx, content=tb)
+
 
 class DPEAddon(dico_command.Addon, name="dpe"):
     command_name = "dpe"
+
+    async def addon_check(self, ctx):
+        owner_ids = await self.bot.get_owners()
+        return ctx.author.id in owner_ids
 
     @dico_command.command(command_name)
     async def dpe(self, ctx: dico_command.Context):
