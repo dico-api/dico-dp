@@ -1,5 +1,9 @@
 """
-dp, simple debugger and tester for dico-command.
+dico
+~~~~~~~~~~~~~~~~~~~~~~~~
+Simple debugger and tester for dico-command.
+:copyright: (c) 2021 dico-api
+:license: MIT
 """
 
 __version__ = "0.0.1"
