@@ -14,5 +14,7 @@ bot.load_module("dp")
 ### dp
 Base command.
 
+- dp py [code] - Executes python code.
+
 ### dpe
 Base command but with embed UI.
