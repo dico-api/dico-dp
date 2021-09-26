@@ -6,7 +6,7 @@ Simple debugger and tester for dico-command.
 :license: MIT
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 from .addon import DPAddon, DPEAddon
 

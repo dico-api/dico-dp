@@ -53,9 +53,12 @@ class Pager:
         prev_button = dico.Button(style=1, label="Prev", custom_id=f"prev{self.message.id}", emoji=self.prev_emoji, disabled=disabled)
         buttons = [prev_button, self.page_button, next_button]
         if self.extra_button:
-            self.extra_button.custom_id += str(self.message.id)
+            if not self.extra_button.custom_id.endswith(str(self.message.id)):
+                self.extra_button.custom_id += str(self.message.id)
             if disabled:
                 self.extra_button.disabled = True
+            else:
+                self.extra_button.disabled = False
             buttons.append(self.extra_button)
         return dico.ActionRow(*buttons)
 
