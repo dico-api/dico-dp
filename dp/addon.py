@@ -32,6 +32,14 @@ class DPAddon(dico_command.Addon, name="dp"):
         while not self.bot.websocket_closed:
             try:
                 interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "dpinfo"), timeout=30)
+                if interaction.author.id != ctx.author.id:
+                    resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                                                    dico.InteractionApplicationCommandCallbackData(
+                                                        content="You are not authorized to use this.",
+                                                        flags=64
+                                                    ))
+                    self.bot.loop.create_task(interaction.create_response(resp))
+                    continue
                 await interaction.create_response(dico.InteractionResponse(callback_type=dico.InteractionCallbackType.DEFERRED_UPDATE_MESSAGE, data={}))
                 if interaction.data.values[0] == "main":
                     await msg.edit(content=get_front_page(self.bot, ctx))
@@ -96,6 +104,14 @@ class DPEAddon(dico_command.Addon, name="dpe"):
         while not self.bot.websocket_closed:
             try:
                 interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "dpeinfo"), timeout=30)
+                if interaction.author.id != ctx.author.id:
+                    resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                                                    dico.InteractionApplicationCommandCallbackData(
+                                                        content="You are not authorized to use this.",
+                                                        flags=64
+                                                    ))
+                    self.bot.loop.create_task(interaction.create_response(resp))
+                    continue
                 await interaction.create_response(dico.InteractionResponse(callback_type=dico.InteractionCallbackType.DEFERRED_UPDATE_MESSAGE, data={}))
                 if interaction.data.values[0] == "main":
                     await msg.edit(embed=get_front_page(self.bot, ctx, embed=True))
