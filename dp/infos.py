@@ -152,3 +152,18 @@ def get_full_info(bot, ctx):
                     value=f"System: {parse_second(round(uptime_sys))} | Bot: {parse_second(round(uptime_bot))}",
                     inline=False)
     return embed
+
+
+def get_cache_info(bot, embed: bool = False):
+    cache = bot.cache
+    cache_info_dict = {}
+    for x in cache.available_cache_types:
+        if x == "guild_cache":
+            continue
+        storage = cache.get_storage(x)
+        cache_info_dict[x] = {"size": storage.size, "max_size": storage.max_size}
+    if not embed:
+        max_size = sorted(map(lambda n: len(n)+4, cache_info_dict.keys()))[-1]
+        texts = '\n'.join([f"{f'[ {k} ]'.ljust(max_size, ' ')} - {v['size']} / {v['max_size'] if v['max_size'] > 0 else '∞'}" for k, v in cache_info_dict.items()])
+        return "This bot's cache info:\n" \
+               f"```css\n{texts}\n```"

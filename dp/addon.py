@@ -4,7 +4,7 @@ import traceback
 import dico
 import dico_command
 from .components import DP_INFO_SELECT, DPE_INFO_SELECT
-from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info
+from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info, get_cache_info
 from .pager import Pager
 from .pyeval import PYEval
 from .utils import delete_wait
@@ -59,6 +59,47 @@ class DPAddon(dico_command.Addon, name="dp"):
     @dp.subcommand("sys")
     async def dp_sys(self, ctx: dico_command.Context):
         await ctx.reply(get_sys_info())
+
+    @dp.subcommand("cache")
+    async def dp_cache(self, ctx: dico_command.Context):
+        await ctx.reply(get_cache_info(self.bot))
+        # TODO: implement cache reset function
+        """
+        delete_button = dico.Button(style=dico.ButtonStyles.DANGER, label="Reset", emoji="🗑️", custom_id=f"trash{ctx.id}")
+        msg = await ctx.reply(get_cache_info(self.bot), components=[dico.ActionRow(delete_button)])
+        try:
+            interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "trash"), timeout=30)
+            yes_button = dico.Button(style=dico.ButtonStyles.SUCCESS, emoji="⭕", custom_id=f"confy{msg.id}")
+            no_button = dico.Button(style=dico.ButtonStyles.DANGER, emoji="❌", custom_id=f"confn{msg.id}")
+            resp = dico.InteractionResponse(callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                                            data=dico.InteractionApplicationCommandCallbackData(content="Are you sure want to reset cache?",
+                                                                                                flags=64,
+                                                                                                components=[dico.ActionRow(yes_button, no_button)]))
+            await interaction.create_response(resp)
+            try:
+                inter: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(msg.id, "conf"), timeout=30)
+                if inter.data.custom_id.startswith("confy"):
+                    resp = dico.InteractionResponse(
+                        callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data=dico.InteractionApplicationCommandCallbackData(content="Successfully cleared cache.", flags=64)
+                    )
+                    await inter.create_response(resp)
+                else:
+                    resp = dico.InteractionResponse(
+                        callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data=dico.InteractionApplicationCommandCallbackData(content="Cancelled cache reset.", flags=64)
+                    )
+                    await inter.create_response(resp)
+            except asyncio.TimeoutError:
+                pass
+            yes_button.disabled = True
+            no_button.disabled = True
+            await interaction.edit_original_response(components=[dico.ActionRow(yes_button, no_button)])
+        except asyncio.TimeoutError:
+            pass
+        delete_button.disabled = True
+        await msg.edit(components=[dico.ActionRow(delete_button)])
+        """
 
     @dp.subcommand("py")
     async def dp_py(self, ctx: dico_command.Context, *, src: str):

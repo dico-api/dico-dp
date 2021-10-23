@@ -19,6 +19,7 @@ bot.load_module("dp")
 ### dp
 Base command.
 
+- dp cache - Shows current bot cache storage info.
 - dp py [code] - Executes python code.
 
 ### dpe
