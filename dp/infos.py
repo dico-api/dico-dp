@@ -167,3 +167,22 @@ def get_cache_info(bot, embed: bool = False):
         texts = '\n'.join([f"{f'[ {k} ]'.ljust(max_size, ' ')} - {v['size']} / {v['max_size'] if v['max_size'] > 0 else '∞'}" for k, v in cache_info_dict.items()])
         return "This bot's cache info:\n" \
                f"```css\n{texts}\n```"
+
+
+def get_addons_info(bot, embed: bool = False):
+    if not embed:
+        texts = []
+        max_size = sorted(map(lambda n: len(n)+4, [x.name for x in bot.addons]))[-1]
+        for addon in bot.addons:
+            addon: dico_command.Addon
+            commands = f"{len(addon.commands)} command{'s' if len(addon.commands) != 1 else ''}" if addon.commands else ""
+            listeners = f"{len(addon.listeners)} listener{'s' if len(addon.listeners) != 1 else ''}" if addon.listeners else ""
+            interactions = f"{len(addon.interactions)} interaction{'s' if len(addon.interactions) != 1 else ''}" if addon.interactions else ""
+            callbacks = f"{len(addon.callbacks)} callback{'s' if len(addon.callbacks) != 1 else ''}" if addon.callbacks else ""
+            autocompletes = f"{len(addon.autocompletes)} autocomplete{'s' if len(addon.autocompletes) != 1 else ''}" if addon.autocompletes else ""
+            final_texts = [x for x in (commands, listeners, interactions, callbacks, autocompletes) if x]
+            if len(final_texts) > 1:
+                final_texts[-1] = f"and {final_texts[-1]}"
+            texts.append(f"{f'[ {addon.name} ]'.ljust(max_size, ' ')} - {(', ' if len(final_texts) > 1 else ' ').join(final_texts)}")
+        joined_texts = '\n'.join(texts)
+        return f"```css\n{joined_texts}\n```"

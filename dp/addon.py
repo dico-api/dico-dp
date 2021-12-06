@@ -4,10 +4,10 @@ import traceback
 import dico
 import dico_command
 from .components import DP_INFO_SELECT, DPE_INFO_SELECT
-from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info, get_cache_info
+from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info, get_cache_info, get_addons_info
 from .pager import Pager
 from .pyeval import PYEval
-from .utils import delete_wait
+from .utils import delete_wait, resolve_route
 
 
 def interaction_check(message_id, prefix):
@@ -116,6 +116,28 @@ class DPAddon(dico_command.Addon, name="dp"):
             pass
         delete_button.disabled = True
         await msg.edit(components=[dico.ActionRow(delete_button)])
+
+    @dp.subcommand("addon")
+    async def dp_addon(self, ctx: dico_command.Context, option: str = None, addon: str = "dp"):
+        print("it is", addon)
+        if not option:
+            return await ctx.reply(get_addons_info(self.bot))
+        if option not in ["load", "unload", "reload"]:
+            return await ctx.reply(f"Invalid option `{option}`. Must be one of `load`, `unload`, `reload`.")
+        try:
+            resolved = resolve_route(addon) if addon != "dp" else ["dp"]
+        except ValueError as ex:
+            return await ctx.reply(str(ex))
+        action = {"load": self.bot.load_module, "unload": self.bot.unload_module, "reload": self.bot.reload_module}[option]
+        resp = []
+        if resolved:
+            for x in resolved:
+                try:
+                    action(x)
+                    resp.append(f"✅ `{x}`")
+                except Exception as e:
+                    resp.append(f"❌ `{x}` - `{e}`")
+        await ctx.reply("\n".join(resp))
 
     @dp.subcommand("py")
     async def dp_py(self, ctx: dico_command.Context, *, src: str):
