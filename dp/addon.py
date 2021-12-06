@@ -119,7 +119,6 @@ class DPAddon(dico_command.Addon, name="dp"):
 
     @dp.subcommand("addon")
     async def dp_addon(self, ctx: dico_command.Context, option: str = None, addon: str = "dp"):
-        print("it is", addon)
         if not option:
             return await ctx.reply(get_addons_info(self.bot))
         if option not in ["load", "unload", "reload"]:
