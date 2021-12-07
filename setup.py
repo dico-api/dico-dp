@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="UTF-8") as f:
 
 setuptools.setup(
     name="dico-dp",
-    version="0.0.4",
+    version="0.0.5",
     author="eunwoo1104",
     author_email="sions04@naver.com",
     description="Simple debugger and tester for dico-command.",
@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/dico-api/dico-dp",
     packages=setuptools.find_packages(),
     python_requires='>=3.7',
-    install_requires=["dico-api", "dico-command"],
+    install_requires=["dico-api", "dico-command", "psutil"],
     classifiers=[
         "Programming Language :: Python :: 3"
     ]
