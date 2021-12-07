@@ -125,6 +125,8 @@ class DPAddon(dico_command.Addon, name="dp"):
             return await ctx.reply(f"Invalid option `{option}`. Must be one of `load`, `unload`, `reload`.")
         try:
             resolved = resolve_route(addon) if addon != "dp" else ["dp"]
+            if not resolved:
+                return await ctx.reply("No addons to reload found.")
         except ValueError as ex:
             return await ctx.reply(str(ex))
         action = {"load": self.bot.load_module, "unload": self.bot.unload_module, "reload": self.bot.reload_module}[option]
@@ -140,9 +142,9 @@ class DPAddon(dico_command.Addon, name="dp"):
 
     @dp.subcommand("py")
     async def dp_py(self, ctx: dico_command.Context, *, src: str):
-        ev = PYEval(ctx, self.bot, src)
         delete_button = dico.Button(style=dico.ButtonStyles.DANGER, emoji="🗑️", custom_id="trash")
         try:
+            ev = PYEval(ctx, self.bot, src)
             resp = await ev.evaluate()
             str_resp = [f"Result {i}:\n{x}" for i, x in enumerate(resp, start=1)] if len(resp) > 1 else [*map(str, resp)]
             pages = []
