@@ -14,7 +14,7 @@ try:
 except ImportError:
     __inter_version__ = None
 
-privileged = ["GUILD_MEMBERS", "GUILD_PRESENCES", "GUILD_MESSAGES", "DIRECT_MESSAGES"]
+privileged = ["GUILD_MEMBERS", "GUILD_PRESENCES"]
 
 
 def get_front_page(bot, ctx, embed: bool = False):
