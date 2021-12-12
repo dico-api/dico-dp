@@ -7,13 +7,7 @@ from .components import DP_INFO_SELECT, DPE_INFO_SELECT
 from .infos import get_front_page, get_bot_info, get_sys_info, get_full_info, get_cache_info, get_addons_info
 from .pager import Pager
 from .pyeval import PYEval
-from .utils import delete_wait, resolve_route
-
-
-def interaction_check(message_id, prefix):
-    def wrap(inter: dico.Interaction):
-        return inter.data.custom_id.startswith(prefix) and inter.data.custom_id.endswith(str(message_id))
-    return wrap
+from .utils import delete_wait, resolve_route, receive_interaction,interaction_check
 
 
 class DPAddon(dico_command.Addon, name="dp"):
@@ -31,15 +25,7 @@ class DPAddon(dico_command.Addon, name="dp"):
 
         while not self.bot.websocket_closed:
             try:
-                interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "dpinfo"), timeout=30)
-                if interaction.author.id != ctx.author.id:
-                    resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                                                    dico.InteractionApplicationCommandCallbackData(
-                                                        content="You are not authorized to use this.",
-                                                        flags=64
-                                                    ))
-                    self.bot.loop.create_task(interaction.create_response(resp))
-                    continue
+                interaction: dico.Interaction = await receive_interaction(ctx, "dpinfo")
                 await interaction.create_response(dico.InteractionResponse(callback_type=dico.InteractionCallbackType.DEFERRED_UPDATE_MESSAGE, data={}))
                 if interaction.data.values[0] == "main":
                     await msg.edit(content=get_front_page(self.bot, ctx))
@@ -66,7 +52,7 @@ class DPAddon(dico_command.Addon, name="dp"):
         delete_button = dico.Button(style=dico.ButtonStyles.DANGER, label="Reset", emoji="🗑️", custom_id=f"trash{ctx.id}")
         msg = await ctx.reply(get_cache_info(self.bot), components=[dico.ActionRow(delete_button)])
         try:
-            interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "trash"), timeout=30)
+            interaction = await receive_interaction(ctx, "trash")
             options = [dico.SelectOption(label=x, value=x) for x in self.bot.cache.available_cache_types if x != "guild_cache"]
             select_cache = dico.SelectMenu(custom_id=f"cachesel{ctx.id}", options=[dico.SelectOption(label="All", value="all"), *options])
             resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -77,41 +63,43 @@ class DPAddon(dico_command.Addon, name="dp"):
                                             ))
             await interaction.create_response(resp)
             try:
-                select_resp: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "cachesel"), timeout=30)
+                select_resp: dico.Interaction = await receive_interaction(ctx, "cachesel")
                 selected = select_resp.data.values[0]
                 yes_button = dico.Button(style=dico.ButtonStyles.SUCCESS, emoji="⭕", custom_id=f"confy{msg.id}")
                 no_button = dico.Button(style=dico.ButtonStyles.DANGER, emoji="❌", custom_id=f"confn{msg.id}")
-                resp = dico.InteractionResponse(callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                resp = dico.InteractionResponse(callback_type=dico.InteractionCallbackType.UPDATE_MESSAGE,
                                                 data=dico.InteractionApplicationCommandCallbackData(
                                                     content=f"Are you sure want to reset {selected} cache?",
                                                     flags=64,
                                                     components=[dico.ActionRow(yes_button, no_button)]))
                 await select_resp.create_response(resp)
+                yes_button.disabled = True
+                no_button.disabled = True
                 try:
                     inter: dico.Interaction = await self.bot.wait("interaction_create",
                                                                   check=interaction_check(msg.id, "conf"), timeout=30)
                     if inter.data.custom_id.startswith("confy"):
                         self.bot.cache.reset(selected if selected != "all" else None)
                         resp = dico.InteractionResponse(
-                            callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            callback_type=dico.InteractionCallbackType.UPDATE_MESSAGE,
                             data=dico.InteractionApplicationCommandCallbackData(content="Successfully cleared cache.",
-                                                                                flags=64)
+                                                                                flags=64,
+                                                                                components=[dico.ActionRow(yes_button, no_button)])
                         )
                         await inter.create_response(resp)
                     else:
                         resp = dico.InteractionResponse(
-                            callback_type=dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            callback_type=dico.InteractionCallbackType.UPDATE_MESSAGE,
                             data=dico.InteractionApplicationCommandCallbackData(content="Cancelled cache reset.",
-                                                                                flags=64)
+                                                                                flags=64,
+                                                                                components=[dico.ActionRow(yes_button, no_button)])
                         )
                         await inter.create_response(resp)
                 except asyncio.TimeoutError:
-                    pass
-                yes_button.disabled = True
-                no_button.disabled = True
-                await interaction.edit_original_response(components=[dico.ActionRow(yes_button, no_button)])
+                    await select_resp.edit_original_response(content="Cancelled cache reset.", components=[dico.ActionRow(yes_button, no_button)])
             except asyncio.TimeoutError:
-                pass
+                select_cache.disabled = True
+                await interaction.edit_original_response(components=[dico.ActionRow(select_cache)])
         except asyncio.TimeoutError:
             pass
         delete_button.disabled = True
@@ -183,15 +171,7 @@ class DPEAddon(dico_command.Addon, name="dpe"):
 
         while not self.bot.websocket_closed:
             try:
-                interaction: dico.Interaction = await self.bot.wait("interaction_create", check=interaction_check(ctx.id, "dpeinfo"), timeout=30)
-                if interaction.author.id != ctx.author.id:
-                    resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                                                    dico.InteractionApplicationCommandCallbackData(
-                                                        content="You are not authorized to use this.",
-                                                        flags=64
-                                                    ))
-                    self.bot.loop.create_task(interaction.create_response(resp))
-                    continue
+                interaction: dico.Interaction = await receive_interaction(ctx.id, "dpeinfo")
                 await interaction.create_response(dico.InteractionResponse(callback_type=dico.InteractionCallbackType.DEFERRED_UPDATE_MESSAGE, data={}))
                 if interaction.data.values[0] == "main":
                     await msg.edit(embed=get_front_page(self.bot, ctx, embed=True))

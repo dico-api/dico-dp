@@ -80,3 +80,23 @@ def resolve_route(route: str, extension: str = ".py", sep: str = "."):
             return [f"{buf.replace('/', sep)}{x}" for x in files]
         else:
             return []
+
+
+def interaction_check(message_id, prefix):
+    def wrap(inter: dico.Interaction):
+        return inter.type.message_component and inter.data.custom_id.startswith(prefix) and inter.data.custom_id.endswith(str(message_id))
+    return wrap
+
+
+async def receive_interaction(ctx, prefix):
+    while not ctx.client.websocket_closed:
+        interaction: dico.Interaction = await ctx.client.wait("interaction_create", check=interaction_check(ctx.id, prefix), timeout=30)
+        if interaction.author.id != ctx.author.id:
+            resp = dico.InteractionResponse(dico.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                                            dico.InteractionApplicationCommandCallbackData(
+                                                content="You are not authorized to use this.",
+                                                flags=64
+                                            ))
+            ctx.client.loop.create_task(interaction.create_response(resp))
+            continue
+        return interaction
